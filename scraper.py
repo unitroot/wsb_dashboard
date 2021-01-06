@@ -4,7 +4,8 @@ def scrape_wsb(n_sub = 20):
 
     ## 1) Load packages
     import datetime
-    #import pyarrow
+    import pyarrow
+    import numpy
     import praw
     import pandas as pd
     import nltk
@@ -144,15 +145,21 @@ def scrape_wsb(n_sub = 20):
                                 'body': 'str',
                                 'vader': 'float32'})
     ### 5.2) Save history
-    sub_data.to_feather(f'www/history/sub_data_{datetime.datetime.now():%Y%m%d_%H%M}.feather')
-    com_data.to_feather(f'www/history/com_data_{datetime.datetime.now():%Y%m%d_%H%M}.feather')
+    sub_data.to_feather(f'www/history/sub_data_{datetime.datetime.now():%Y%m%d_%H%M}.ft')
+    com_data.to_feather(f'www/history/com_data_{datetime.datetime.now():%Y%m%d_%H%M}.ft')
     ### 5.3) Splice history
-    sub_wc = pd.read_feather('www/sub_data.feather')
-    com_wc = pd.read_feather('www/com_data.feather')
-    sub_data = pd.merge(sub_data, sub_wc, how = 'outer')
-    com_data = pd.merge(com_data, com_wc, how = 'outer')
+    sub_wc = pd.read_feather('www/sub_data.ft')
+    com_wc = pd.read_feather('www/com_data.ft')
+    sub_key = pd.merge(sub_data, sub_wc, how = 'outer')
+    com_key = pd.merge(com_data, com_wc, how = 'outer')
+    sub_key = pd.merge(sub_data['id'], sub_wc['id'], how = 'outer').drop_duplicates()
+    sub_key = pd.merge(sub_key, sub_data, how = 'outer', on = 'id').dropna(how = 'any')
+    sub_data = pd.merge(sub_key, pd.merge(sub_key[pd.isnull(sub_key['title'])]['id'], sub_wc, how = 'outer', on = 'id'), how = 'outer')
+    com_key = pd.merge(com_data['id'], com_wc['id'], how = 'outer').drop_duplicates()
+    com_key = pd.merge(com_key, com_data, how = 'outer', on = 'id').dropna(how = 'any')
+    com_data = pd.merge(com_key, pd.merge(com_key[pd.isnull(com_key['subid'])]['id'], com_wc, how = 'outer', on = 'id'), how = 'outer')
     ### 5.4) Save working copy
-    sub_data.to_feather('www/sub_data.feather')
-    com_data.to_feather('www/com_data.feather')
+    sub_data.to_feather('www/sub_data.ft')
+    #com_data.to_feather('www/com_data.ft')
 
     # See you in R! 

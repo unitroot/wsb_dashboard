@@ -19,9 +19,10 @@ updateReddit <- function(nSub = 20) {
   
   # Python Call
   ## fail safe
-  reticulate::use_condaenv("r-reticulate")
+  reticulate::use_condaenv("rstudio")
   if (!reticulate::py_available()) {reticulate::py_config()}
   if (!reticulate::py_available()) {return()}
+  reticulate::py_discover_config()
   
   ##
   #reticulate::py_run_file("scraper.py")
