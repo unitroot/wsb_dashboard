@@ -87,14 +87,20 @@ def scrape_wsb(n_sub = 20):
         'shit': 0,
         'fag': 0, 
         'autist': 0,
+        'autists': 0,
         # positive valence
         'bull': 1.5,
+        'tendie': 1.5,
+        'tendies': 1.5,
         'call': 1.5,
         'calls': 1.5,
         'long': 1.5,
         'buy': 1,
         'buys': 1,
         'buying': 1,
+        'moon': 1, 
+        'mooning': 1,
+        'gainz': 1,
         'hold': 0.5,
         # negative valence
         'bear': -1.5,
@@ -110,10 +116,9 @@ def scrape_wsb(n_sub = 20):
         "wife's": -1,
         'boyfriend': -1,
         'gay': -0.5, # sad
-        'moon': -0.5, # debatable, but mostly used sarcastically
         # emoji mapping, which get translated to text by VADER
         'fire': 0,
-        'rainbow': -1.5,
+        'rainbow bear': -1.5,
         'gem stone': 1,
         'raising hand': 1,
         'rocket': 1.5
