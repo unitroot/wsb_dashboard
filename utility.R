@@ -41,25 +41,35 @@ updateReddit <- function(nSub = 20) {
   reticulate::source_python("scraper.py")
   reticulate::py_run_string("scrape_wsb(n_sub)")
   reticulate::py_run_string("scrape_subs(1000)")
-  
+ 
+  return()
+}
+
+parseReddit <- function() {
   dfSubs <- tibble::tibble(arrow::read_feather("www/sub_data.ft"))
   dfComs <- tibble::tibble(arrow::read_feather("www/com_data.ft"))
   
   # filter out bot-posts
   dfComs <- dfComs[!dfComs$author %in% c("WSBVoteBot","AutoModerator", "pickbot"),]
   
-  # identify tickers
+  # parse tickers
   dfComs <- dplyr::mutate(dfComs, lazy = stringr::str_extract_all(dfComs$body, paste0("\\b(", paste(dfTickers$ticker, collapse = "|"), ")\\b")) %>% 
                             purrr::map_chr(toString))
   dfComs <- dplyr::mutate(dfComs, strict = stringr::str_extract_all(dfComs$body, paste0("\\$\\b(", paste(dfTickers$ticker, collapse = "|"), ")\\b")) %>% 
                             purrr::map_chr(toString))
-  dfComs <- dfComs[rowSums(dfComs[,c("strict", "lazy")] == "") < 2, ]
+  dfComs <- dfComs[rowSums(dfComs[,c("strict", "lazy")] == "") < 2, ] %>% 
+    dplyr::mutate(strict = gsub("\\$", "", strict)) %>% 
+    dplyr::mutate(strict = gsub("\\s", "", strict)) %>% 
+    dplyr::mutate(lazy = gsub("\\s", "", lazy)) 
+  
   dfSubs <- dplyr::mutate(dfSubs, lazy = stringr::str_extract_all(dfSubs$title, paste0("\\b(", paste(dfTickers$ticker, collapse = "|"), ")\\b")) %>% 
                             purrr::map_chr(toString))
   dfSubs <- dplyr::mutate(dfSubs, strict = stringr::str_extract_all(dfSubs$title, paste0("\\$\\b(", paste(dfTickers$ticker, collapse = "|"), ")\\b")) %>% 
                             purrr::map_chr(toString))
-  dfSubs <- dfSubs[rowSums(dfSubs[,c("strict", "lazy")] == "") < 2, ]
-  
+  dfSubs <- dfSubs[rowSums(dfSubs[,c("strict", "lazy")] == "") < 2, ] %>% 
+    dplyr::mutate(strict = gsub("\\$", "", strict)) %>% 
+    dplyr::mutate(strict = gsub("\\s", "", strict)) %>% 
+    dplyr::mutate(lazy = gsub("\\s", "", lazy)) 
   
   
   return()
