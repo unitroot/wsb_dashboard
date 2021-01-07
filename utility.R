@@ -60,7 +60,8 @@ parseReddit <- function() {
   dfComs <- dfComs[rowSums(dfComs[,c("strict", "lazy")] == "") < 2, ] %>% 
     dplyr::mutate(strict = gsub("\\$", "", strict)) %>% 
     dplyr::mutate(strict = gsub("\\s", "", strict)) %>% 
-    dplyr::mutate(lazy = gsub("\\s", "", lazy)) 
+    dplyr::mutate(lazy = gsub("\\s", "", lazy)) %>% 
+    dplyr::mutate(created = as.Date(lubridate::with_tz(as.POSIXct(created, tz = "UTC"), "EST")))
   
   dfSubs <- dplyr::mutate(dfSubs, lazy = stringr::str_extract_all(dfSubs$title, paste0("\\b(", paste(dfTickers$ticker, collapse = "|"), ")\\b")) %>% 
                             purrr::map_chr(toString))
@@ -69,8 +70,40 @@ parseReddit <- function() {
   dfSubs <- dfSubs[rowSums(dfSubs[,c("strict", "lazy")] == "") < 2, ] %>% 
     dplyr::mutate(strict = gsub("\\$", "", strict)) %>% 
     dplyr::mutate(strict = gsub("\\s", "", strict)) %>% 
-    dplyr::mutate(lazy = gsub("\\s", "", lazy)) 
+    dplyr::mutate(lazy = gsub("\\s", "", lazy)) %>% 
+    dplyr::mutate(created = as.Date(lubridate::with_tz(as.POSIXct(created, tz = "UTC"), "EST")))
   
+  xtsComScore <- dfComs[,c("created", "score", "lazy")] %>% 
+    tidyr::separate_rows(lazy, sep = ",") %>% 
+    dplyr::group_by(created, lazy) %>% 
+    dplyr::summarise(score = sum(log(score + 1), na.rm = TRUE)) %>% 
+    tidyr::spread(lazy, score) %>% 
+    as.data.frame()
+  xtsComScore <- xts::xts(xtsComScore[,-1], order.by = xtsComScore[,1])
+  
+  xtsSubScore <- dfSubs[,c("created", "ncomms", "lazy")] %>% 
+    tidyr::separate_rows(lazy, sep = ",") %>% 
+    dplyr::group_by(created, lazy) %>% 
+    dplyr::summarise(ncomms = sum(log(ncomms + 1), na.rm = TRUE)) %>% 
+    tidyr::spread(lazy, ncomms) %>% 
+    as.data.frame()
+  xtsSubScore <- xts::xts(xtsSubScore[,-1], order.by = xtsSubScore[,1])
+  
+  xtsComSent <- dfComs[,c("created", "vader", "lazy")] %>% 
+    tidyr::separate_rows(lazy, sep = ",") %>% 
+    dplyr::group_by(created, lazy) %>% 
+    dplyr::summarise(score = mean(vader, na.rm = TRUE)) %>% 
+    tidyr::spread(lazy, score) %>% 
+    as.data.frame()
+  xtsComSent <- xts::xts(xtsComSent[,-1], order.by = xtsComSent[,1])
+  
+  xtsSubSent <- dfSubs[,c("created", "vader", "lazy")] %>% 
+    tidyr::separate_rows(lazy, sep = ",") %>% 
+    dplyr::group_by(created, lazy) %>% 
+    dplyr::summarise(score = mean(vader, na.rm = TRUE)) %>% 
+    tidyr::spread(lazy, score) %>% 
+    as.data.frame()
+  xtsSubSent <- xts::xts(xtsSubSent[,-1], order.by = xtsSubSent[,1])
   
   return()
 }
