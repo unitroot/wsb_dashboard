@@ -73,10 +73,11 @@ parseReddit <- function() {
     dplyr::mutate(lazy = gsub("\\s", "", lazy)) %>% 
     dplyr::mutate(created = as.Date(lubridate::with_tz(as.POSIXct(created, tz = "UTC"), "EST")))
   
+  # build time series
   xtsComScore <- dfComs[,c("created", "score", "lazy")] %>% 
     tidyr::separate_rows(lazy, sep = ",") %>% 
     dplyr::group_by(created, lazy) %>% 
-    dplyr::summarise(score = sum(log(score + 1), na.rm = TRUE)) %>% 
+    dplyr::summarise(score = sum(score, na.rm = TRUE)) %>% 
     tidyr::spread(lazy, score) %>% 
     as.data.frame()
   xtsComScore <- xts::xts(xtsComScore[,-1], order.by = xtsComScore[,1])
@@ -84,7 +85,7 @@ parseReddit <- function() {
   xtsSubScore <- dfSubs[,c("created", "ncomms", "lazy")] %>% 
     tidyr::separate_rows(lazy, sep = ",") %>% 
     dplyr::group_by(created, lazy) %>% 
-    dplyr::summarise(ncomms = sum(log(ncomms + 1), na.rm = TRUE)) %>% 
+    dplyr::summarise(ncomms = sum(ncomms, na.rm = TRUE)) %>% 
     tidyr::spread(lazy, ncomms) %>% 
     as.data.frame()
   xtsSubScore <- xts::xts(xtsSubScore[,-1], order.by = xtsSubScore[,1])
@@ -104,6 +105,24 @@ parseReddit <- function() {
     tidyr::spread(lazy, score) %>% 
     as.data.frame()
   xtsSubSent <- xts::xts(xtsSubSent[,-1], order.by = xtsSubSent[,1])
+  
+  # build word cloud matrices
+  sUnique <- dfSubs[,c("lazy")] %>% 
+    tidyr::separate_rows(lazy, sep = ",")  
+  sUnique <- unique(as.character(sUnique$lazy))
+  
+  lWords <- list()
+  
+  dfCorpus <- dfSubs[,c("lazy", "title")] %>% 
+    dplyr::rename(body = title) %>% 
+    rbind(dfComs[,c("lazy", "body")]) %>% 
+    dplyr::mutate(body = iconv(body, "utf-8", "ascii", sub = ""))
+  
+  ## iterate through unique tickers
+  for (sTick in sUnique) {
+    dfTemp <- d
+    dfCorpus <- tm::Corpus(tm::VectorSource())
+  }
   
   return()
 }
