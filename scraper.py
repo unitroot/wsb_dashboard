@@ -1,5 +1,5 @@
 # WSB SCRAPER
-## 1) Load packages
+## Load packages
 import datetime
 import pyarrow
 import numpy
@@ -61,14 +61,14 @@ wsb_lingo = {
     }
 sia.lexicon.update(wsb_lingo)
 
-    
+# Set up Reddit API
+# DISCLAIMER: this is not my API key, I have it from some tutorial, but can't find the link anymore. Sorry!
+reddit = praw.Reddit(client_id='dwvhQN_PoUCoAw',
+                    client_secret='X8N_SZUsiI-CNVIYLToBFFQ-cYE',
+                    user_agent='news on hooks')
+
+# SCRAPE SUBS AND COMMENTS
 def scrape_wsb(n_sub = 20):
-        
-    # Set up Reddit API
-    # DISCLAIMER: this is not my API key, I have it from some tutorial, but can't find the link anymore. Sorry!
-    reddit = praw.Reddit(client_id='dwvhQN_PoUCoAw',
-                        client_secret='X8N_SZUsiI-CNVIYLToBFFQ-cYE',
-                        user_agent='news on hooks')
 
     ## Retrieve data
     ### Retrieve submissions
@@ -163,13 +163,8 @@ def scrape_wsb(n_sub = 20):
     sub_data.to_feather('www/sub_data.ft')
     com_data.to_feather('www/com_data.ft')
 
-# Scrape subs
-
+# SCRAPE SUBS
 def scrape_subs(n_sub = 20):
-    # DISCLAIMER: this is not my API key, I have it from some tutorial, but can't find the link anymore. Sorry!
-    reddit = praw.Reddit(client_id='dwvhQN_PoUCoAw',
-                        client_secret='X8N_SZUsiI-CNVIYLToBFFQ-cYE',
-                        user_agent='news on hooks')
 
     # Retrieve submissions
     submissions = reddit.subreddit('wallstreetbets').new(limit = n_sub)
@@ -224,14 +219,8 @@ def scrape_subs(n_sub = 20):
     sub_data.to_feather('www/sub_data.ft')
 
 
-# Scrape comments
-
+# SCRAPE COMMENTS
 def scrape_coms(start_date = '1900-01-01'):
-
-    # DISCLAIMER: this is not my API key, I have it from some tutorial, but can't find the link anymore. Sorry!
-    reddit = praw.Reddit(client_id='dwvhQN_PoUCoAw',
-                        client_secret='X8N_SZUsiI-CNVIYLToBFFQ-cYE',
-                        user_agent='news on hooks')
 
     # get subs
     sub_data = pd.read_feather('www/sub_data.ft')
