@@ -109,7 +109,7 @@ parseReddit <- function() {
   # build word cloud matrices
   sUnique <- dfSubs[,c("lazy")] %>% 
     tidyr::separate_rows(lazy, sep = ",")  
-  sUnique <- unique(as.character(sUnique$lazy))
+  sUnique <- stringr::str_sort(unique(as.character(sUnique$lazy)))
   
   lWords <- list()
   
@@ -117,11 +117,20 @@ parseReddit <- function() {
     dplyr::rename(body = title) %>% 
     rbind(dfComs[,c("lazy", "body")]) %>% 
     dplyr::mutate(body = iconv(body, "utf-8", "ascii", sub = ""))
+  dfCorpus <- dfCorpus[grepl(sTick, dfCorpus$lazy),] %>% 
+    .$body
   
   ## iterate through unique tickers
   for (sTick in sUnique) {
-    dfTemp <- d
-    dfCorpus <- tm::Corpus(tm::VectorSource())
+    dfCorpus <- tm::Corpus(tm::VectorSource(dfCorpus[grepl(sTick, dfCorpus$lazy),"body"])) %>% 
+      tm::tm_map(tolower) %>% 
+      tm::tm_map(removePunctuation) %>% 
+      tm::tm_map(removeNumbers) %>% 
+      tm::tm_map(removeWords, tm::stopwords("en")) %>% 
+      as.matrix(tm::TermDocumentMatrix()) %>% 
+      sort(rowSums(), decreasing = TRUE)
+      
+    dfCorpus <- data.frame(word = names(dfCorpus), freq = as.numeric(dfCorpus))
   }
   
   return()
