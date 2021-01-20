@@ -45,7 +45,21 @@ updateReddit <- function(nSub = 20) {
   return()
 }
 
+getSubs <- function(nSub = 20) {
+  dfTickers <- tibble::tibble(arrow::read_feather("www/tickers.feather"))
+  # Python Call
+  ## fail safe
+  if (!reticulate::py_available()) {reticulate::py_config()}
+  if (!reticulate::py_available()) {return()}
+  reticulate::py_discover_config()
+  
+  reticulate::py_run_string(paste0("n_sub = ", nSub))
+  reticulate::source_python("scraper.py")
+  reticulate::py_run_string("scrape_subs(n_sub)")
+}
+
 parseReddit <- function() {
+  dfTickers <- tibble::tibble(arrow::read_feather("www/tickers.feather"))
   dfSubs <- tibble::tibble(arrow::read_feather("www/sub_data.ft"))
   dfComs <- tibble::tibble(arrow::read_feather("www/com_data.ft"))
   
