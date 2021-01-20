@@ -143,20 +143,26 @@ parseReddit <- function() {
     dplyr::rename(body = title) %>% 
     rbind(dfComs[,c("lazy", "body")]) %>% 
     dplyr::mutate(body = iconv(body, "utf-8", "ascii", sub = ""))
-  dfCorpus <- dfCorpus[grepl(sTick, dfCorpus$lazy),] %>% 
-    .$body
   
   ## iterate through unique tickers
   for (sTick in sUnique) {
-    dfCorpus <- tm::Corpus(tm::VectorSource(dfCorpus[grepl(sTick, dfCorpus$lazy),"body"])) %>% 
+    dfTemp <- dfCorpus[grepl(sTick, dfCorpus$lazy),"body"] %>% 
+      unlist(use.names = FALSE) %>% 
+      tm::VectorSource() %>% 
+      tm::Corpus() %>% 
       tm::tm_map(tolower) %>% 
       tm::tm_map(removePunctuation) %>% 
       tm::tm_map(removeNumbers) %>% 
-      tm::tm_map(removeWords, tm::stopwords("en")) %>% 
-      as.matrix(tm::TermDocumentMatrix()) %>% 
-      sort(rowSums(), decreasing = TRUE)
+      tm::tm_map(removeWords, tm::stopwords("en")) %>%  
+      tm::TermDocumentMatrix() %>% 
+      as.matrix() %>% 
+      rowSums() %>% 
+      sort(decreasing = TRUE) 
+    
+    dfTemp <- dfTemp[!names(dfTemp) %in% tolower(sTick)]
       
-    dfCorpus <- data.frame(word = names(dfCorpus), freq = as.numeric(dfCorpus))
+    dfTemp <- data.frame(word = names(dfTemp), freq = as.numeric(dfTemp))[1:100,]
+    eval(parse(text = paste0("lWords$", sTick, " <- dfTemp")))
   }
   
   return()
