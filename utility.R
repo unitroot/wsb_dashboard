@@ -46,7 +46,6 @@ updateReddit <- function(nSub = 20) {
 }
 
 getSubs <- function(nSub = 20) {
-  dfTickers <- tibble::tibble(arrow::read_feather("www/tickers.feather"))
   # Python Call
   ## fail safe
   if (!reticulate::py_available()) {reticulate::py_config()}
@@ -56,6 +55,19 @@ getSubs <- function(nSub = 20) {
   reticulate::py_run_string(paste0("n_sub = ", nSub))
   reticulate::source_python("scraper.py")
   reticulate::py_run_string("scrape_subs(n_sub)")
+}
+
+getComs <- function(sDate = Sys.Date()) {
+  if (!inherits(sDate, "Date")) {stop("sDate must be a Date object.")}
+  # Python Call
+  ## fail safe
+  if (!reticulate::py_available()) {reticulate::py_config()}
+  if (!reticulate::py_available()) {return()}
+  reticulate::py_discover_config()
+  
+  reticulate::py_run_string(paste0("start_date = ", as.character(sDate, "%Y-%m-%d")))
+  reticulate::source_python("scraper.py")
+  reticulate::py_run_string("scrape_coms(start_date)")
 }
 
 parseReddit <- function() {
