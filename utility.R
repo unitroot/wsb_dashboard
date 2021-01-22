@@ -7,6 +7,7 @@ updateReddit <- function(nSub = 20) {
   require(arrow)
   require(reticulate)
   require(tibble)
+  require(tm)
   
   # get ticker most recent ticker list
   dfTickers <- TTR::stockSymbols(exchange = c("NASDAQ", "NYSE", "AMEX")) %>% 
@@ -165,5 +166,6 @@ parseReddit <- function() {
     eval(parse(text = paste0("lWords$", sTick, " <- dfTemp")))
   }
   
-  return()
+  lData <- list(xtsComScore, xtsSubScore, xtsComSent, xtsSubSent, lWords)
+  save(lData, file = "www/lData.Rda")
 }
