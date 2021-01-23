@@ -7,7 +7,7 @@ import praw
 import pandas as pd
 import nltk
 # nltk.download('vader_lexicon')
-from nltk.sentiment.vader import SentimentIntensityAnalyzer as sia
+from nltk.sentiment.vader import SentimentIntensityAnalyzer 
 sia = SentimentIntensityAnalyzer()
 wsb_lingo = {
         # words to neutralize
@@ -47,6 +47,7 @@ wsb_lingo = {
         'short': -1.5,
         'shorts': -1.5,
         'shorting': -1.5,
+        'bagholder': -1.5,
         'put': -1,
         'wife': -1,
         "wife's": -1,
