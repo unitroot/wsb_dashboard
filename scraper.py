@@ -225,7 +225,7 @@ def scrape_coms(start_date = '1900-01-01'):
 
     # get subs
     sub_data = pd.read_feather('www/sub_data.ft')
-    sub_data = sub_data[sub_data['created' > start_date]]
+    sub_data = sub_data[sub_data.created > start_date]
 
     # Retrieve comment forrests
     com_data =  pd.DataFrame(columns = ['id', 'subid', 'parentid', 'author', 'score', 'created', 'body', 'vader'])
