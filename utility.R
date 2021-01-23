@@ -42,7 +42,7 @@ updateReddit <- function(nSub = 20) {
   reticulate::source_python("scraper.py")
   reticulate::py_run_string("scrape_wsb(n_sub)")
   reticulate::py_run_string("scrape_subs(1000)")
- 
+  
   return()
 }
 
@@ -58,7 +58,7 @@ getSubs <- function(nSub = 20) {
   reticulate::py_run_string("scrape_subs(n_sub)")
 }
 
-getComs <- function(sDate = Sys.Date()) {
+getComs <- function(sDate = Sys.Date()-10000) {
   if (!inherits(sDate, "Date")) {stop("sDate must be a Date object.")}
   # Python Call
   ## fail safe
@@ -66,7 +66,7 @@ getComs <- function(sDate = Sys.Date()) {
   if (!reticulate::py_available()) {return()}
   reticulate::py_discover_config()
   
-  reticulate::py_run_string(paste0("start_date = ", as.character(sDate, "%Y-%m-%d")))
+  reticulate::py_run_string(paste0("start_date = ", as.character(sDate, "'%Y-%m-%d'")))
   reticulate::source_python("scraper.py")
   reticulate::py_run_string("scrape_coms(start_date)")
 }
@@ -161,7 +161,7 @@ parseReddit <- function() {
       sort(decreasing = TRUE) 
     
     dfTemp <- dfTemp[!names(dfTemp) %in% tolower(sTick)]
-      
+    
     dfTemp <- data.frame(word = names(dfTemp), freq = as.numeric(dfTemp))[1:100,]
     eval(parse(text = paste0("lWords$", sTick, " <- dfTemp")))
   }
