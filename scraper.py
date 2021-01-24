@@ -290,4 +290,7 @@ def scrape_coms(start_date = '1900-01-01'):
     ### 5.4) Save working copy
     com_data.to_feather('www/com_data.ft')
 
+def scrape_date(date = '2021-01-01'):
+    
+
 # See you in R! 
