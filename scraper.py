@@ -34,8 +34,8 @@ wsb_lingo = {
         'buy': 1,
         'buys': 1,
         'buying': 1,
-        'moon': 1, 
-        'mooning': 1,
+        'moon': 1.5, 
+        'mooning': 1.5,
         'gainz': 1,
         'hold': 0.5,
         # negative valence
@@ -54,10 +54,9 @@ wsb_lingo = {
         'boyfriend': -1,
         'gay': -0.5, # sad
         # emoji mapping, which get translated to text by VADER
-        'fire': 0,
+        'fire': 1,
         'rainbow bear': -1.5,
-        'gem stone': 1,
-        'raising hand': 1,
+        'gem stone raising hand': 1,
         'rocket': 1.5
     }
 sia.lexicon.update(wsb_lingo)
@@ -290,7 +289,59 @@ def scrape_coms(start_date = '1900-01-01'):
     ### 5.4) Save working copy
     com_data.to_feather('www/com_data.ft')
 
-def scrape_date(date = '2021-01-01'):
+def scrape_sub_light_date(date = '2021-01-01'):
+    
+    # Retrieve submissions
+    submissions = reddit.subreddit('wallstreetbets').new(limit = n_sub)
+    # Parse submissions
+    sub_data = pd.DataFrame(columns = ['id', 'title', 'author', 'score', 'flair', 'ncomms', 'created', 'vader'])
+    for sub in submissions:
+        sub_data = sub_data.append(
+        pd.Series(
+        [
+            sub.id, 
+            sub.title, 
+            sub.author,
+            sub.score,
+            sub.link_flair_text, 
+            sub.num_comments,
+            sub.created_utc,
+            'N/A'
+        ], 
+        index = ['id', 'title', 'author', 'score', 'flair', 'ncomms', 'created', 'body', 'vader']
+        ),
+            ignore_index = True
+        )
+
+    # VADER Sentiment Analyzer
+    # Iterate over submissions and comments
+    for row in sub_data.index:
+        sub_data.loc[row, 'vader'] = sia.polarity_scores(sub_data.loc[row, 'title'])['compound']
+
+
+    # Store Data
+    # Data type fixing
+    sub_data = sub_data
+    sub_data = sub_data.astype({'id': 'str', # required str conversion due to hidden PRAW-specific dtypes incompatibility with feather
+                                'title': 'str',
+                                'author': 'str',
+                                'score': 'int32', 
+                                'flair': 'str',
+                                'ncomms': 'int32', 
+                                'created': 'datetime64[s]',
+                                'vader': 'float32'})
+
+    # Save history
+    sub_data.to_feather(f'www/history/sub_data_light_date_{date}.ft')
+    # Splice history
+    sub_wc = pd.read_feather('www/sub_data_light.ft')
+    sub_key = pd.merge(sub_data, sub_wc, how = 'outer')
+    sub_key = pd.merge(sub_data['id'], sub_wc['id'], how = 'outer').drop_duplicates()
+    sub_key = pd.merge(sub_key, sub_data, how = 'outer', on = 'id').dropna(how = 'any')
+    sub_data = pd.merge(sub_key, pd.merge(sub_key[pd.isnull(sub_key['title'])]['id'], sub_wc, how = 'outer', on = 'id'), how = 'outer')
+
+    # Save working copy
+    sub_data.to_feather('www/sub_data.ft')
     
 
 # See you in R! 
